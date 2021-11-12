@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 data class HelloForm(
-    val name:String
+    val name: String
 )
 
 data class HelloResponse(
