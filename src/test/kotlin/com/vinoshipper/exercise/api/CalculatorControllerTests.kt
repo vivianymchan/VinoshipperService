@@ -1,6 +1,7 @@
 package com.vinoshipper.exercise.api
 
 import com.ninjasquad.springmockk.MockkBean
+import com.vinoshipper.exercise.domain.calculator.AgeCalculator
 import com.vinoshipper.exercise.domain.calculator.BusinessHourCalculator
 import io.mockk.every
 import io.mockk.slot
@@ -20,10 +21,13 @@ class CalculatorControllerTests {
     @MockkBean
     private lateinit var businessHourCalculator: BusinessHourCalculator
 
+    @MockkBean
+    private lateinit var ageCalculator: AgeCalculator
+
     private val path = "/calculators"
 
     @Test
-    fun `Happy path in UTC timezone`() {
+    fun `Business calculator happy path`() {
         val startSlot = slot<LocalDateTime>()
         val endSlot = slot<LocalDateTime>()
         every { businessHourCalculator.calculate(capture(startSlot), capture(endSlot)) } returns 14
@@ -38,4 +42,13 @@ class CalculatorControllerTests {
         assert(endSlot.captured.isEqual(LocalDateTime.of(2021, 11, 16, 15, 0)))
     }
 
+    @Test
+    fun `Age Validator happy path`() {
+        every { ageCalculator.overDrinkingAge(any()) } returns true
+
+        mvc.perform(
+            MockMvcRequestBuilders.get("$path/of-age")
+                .param("dateOfBirth", "2001-11-14")
+        ).andExpect(MockMvcResultMatchers.content().json("{\"ofAgeToDrink\": true}"))
+    }
 }

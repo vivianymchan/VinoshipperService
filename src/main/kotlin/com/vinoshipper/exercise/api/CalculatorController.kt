@@ -1,23 +1,22 @@
 package com.vinoshipper.exercise.api
 
+import com.vinoshipper.exercise.domain.calculator.AgeCalculator
 import com.vinoshipper.exercise.domain.calculator.BusinessHourCalculator
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
+import java.time.*
 
 @RestController
 @RequestMapping("calculators")
 class CalculatorController(
-    private val businessHourCalculator: BusinessHourCalculator
+    private val businessHourCalculator: BusinessHourCalculator,
+    private val ageCalculator: AgeCalculator
 ) {
 
     @GetMapping("/business-hour", produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun calculateBusinessHours(@RequestParam("startDateTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) startDateTime: OffsetDateTime,
-                               @RequestParam("endDateTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) endDateTime: OffsetDateTime
+    fun calculateBusinessHours(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) startDateTime: OffsetDateTime,
+                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) endDateTime: OffsetDateTime
     ): BusinessHourResponse {
 
         val (startDateHour, endDateHour) = normalizeInput(startDateTime, endDateTime)
@@ -29,6 +28,15 @@ class CalculatorController(
             endUtc = endDateHour.toString()
         )
     }
+
+    @GetMapping("/of-age", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun isOfAge(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") dateOfBirth: LocalDate): AgeResponse {
+        val ofAge = ageCalculator.overDrinkingAge(dateOfBirth)
+        return AgeResponse(
+            ofAgeToDrink = ofAge
+        )
+    }
+
 
     private fun normalizeInput(startDateTime: OffsetDateTime, endDateTime: OffsetDateTime): Pair<LocalDateTime, LocalDateTime> {
 
@@ -52,4 +60,8 @@ data class BusinessHourResponse(
     val duration: Int,
     val startUtc: String,
     val endUtc: String
+)
+
+data class AgeResponse(
+    val ofAgeToDrink: Boolean
 )
